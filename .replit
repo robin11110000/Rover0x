@@ -36,23 +36,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Next.js Dev"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Next.js Dev Server"
-
-[[workflows.workflow]]
-name = "Next.js Dev"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow]]
 name = "Next.js Dev Server"
