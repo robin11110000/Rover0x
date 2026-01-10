@@ -50,16 +50,20 @@ export function SignMessage() {
       
       if (typeof response === 'string') {
         signature = response;
-      } else if (response.signature?.data?.data) {
-        // Convert byte array to hex string
-        const byteArray = Object.values(response.signature.data.data) as number[];
-        signature = '0x' + byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-      } else if (response.signature) {
-        signature = typeof response.signature === 'string' 
-          ? response.signature 
-          : JSON.stringify(response.signature);
       } else {
-        signature = JSON.stringify(response);
+        // Safe access for signature data
+        const res = response as any;
+        if (res.signature?.data?.data) {
+          // Convert byte array to hex string
+          const byteArray = Object.values(res.signature.data.data) as number[];
+          signature = '0x' + byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        } else if (res.signature) {
+          signature = typeof res.signature === 'string' 
+            ? res.signature 
+            : JSON.stringify(res.signature);
+        } else {
+          signature = JSON.stringify(response);
+        }
       }
       
       setSignedMessage(signature);
@@ -67,15 +71,15 @@ export function SignMessage() {
       toast.success(
         <div className="flex flex-col gap-2">
           <p>Message signed successfully!</p>
-          <p className="text-xs opacity-75">Message: "{message}"</p>
+          <p className="text-xs opacity-75">Message: &quot;{message}&quot;</p>
         </div>,
         {
           id: loadingToast,
           duration: 5000,
         }
       );
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to sign message";
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to sign message";
       toast.error(errorMessage, {
         id: loadingToast,
       });
@@ -91,7 +95,7 @@ export function SignMessage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-muted-foreground">
-          Sign a "gmove" message with your wallet.
+          Sign a &quot;gmove&quot; message with your wallet.
         </p>
         
         <div className="space-y-2">

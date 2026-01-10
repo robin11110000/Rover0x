@@ -12,7 +12,8 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { account, connected, disconnect } = useWallet();
 
-  const truncateAddress = (address: string | { toString(): string }) => {
+  const truncateAddress = (address: any) => {
+    if (!address) return "";
     const addressStr = typeof address === 'string' ? address : address.toString();
     return `${addressStr.slice(0, 6)}...${addressStr.slice(-4)}`;
   };

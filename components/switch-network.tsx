@@ -27,8 +27,9 @@ export function SwitchNetwork() {
       // Check if we're using Nightly wallet
       if (isNightly && typeof window !== "undefined") {
         // Use Nightly's direct API
-        if ((window as any).nightly?.aptos?.changeNetwork) {
-          await (window as any).nightly.aptos.changeNetwork({
+        const nightlyWindow = window as any;
+        if (nightlyWindow.nightly?.aptos?.changeNetwork) {
+          await nightlyWindow.nightly.aptos.changeNetwork({
             chainId,
             name: "custom"
           });
@@ -47,8 +48,8 @@ export function SwitchNetwork() {
       toast.error("Network switching not supported. Please use Nightly wallet for network switching.", {
         id: loadingToast,
       });
-    } catch (err: any) {
-      const errorMessage = err.message || `Failed to switch to ${networkName}`;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : `Failed to switch to ${networkName}`;
       toast.error(errorMessage, {
         id: loadingToast,
       });

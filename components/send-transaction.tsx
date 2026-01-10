@@ -81,7 +81,7 @@ export function SendTransaction() {
       });
 
       const response = await signAndSubmitTransaction({
-        sender: account.address,
+        sender: account.address as any,
         data: {
           function: "0x1::aptos_account::transfer",
           functionArguments: [recipient, amountInOctas],
@@ -116,7 +116,7 @@ export function SendTransaction() {
               duration: 10000,
             }
           );
-        } catch (waitError) {
+        } catch {
           toast.warning("Transaction submitted but confirmation timed out", {
             id: loadingToast,
             description: "Check the explorer for status",
@@ -127,8 +127,8 @@ export function SendTransaction() {
           });
         }
       }
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to send transaction";
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to send transaction";
       toast.error(errorMessage, {
         id: loadingToast,
       });

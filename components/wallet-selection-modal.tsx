@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -49,14 +50,14 @@ export function WalletSelectionModal({ children }: WalletSelectionModalProps) {
         
         if (selectedWallet?.features?.['aptos:connect']) {
           // Use wallet-standard aptos:connect feature with network info
-          const networkInfo = {
+          const networkInfo: any = {
             chainId: 126, // Movement Mainnet
-            name: "custom" as const,
+            name: "custom",
             url: "https://full.mainnet.movementinfra.xyz/v1"
           };
           
           try {
-            const result = await selectedWallet.features['aptos:connect'].connect(false, networkInfo);
+            const result = await (selectedWallet.features['aptos:connect'] as any).connect(false, networkInfo);
             
             // If wallet-standard connection succeeded, now connect via wallet adapter
             if (result.status === "Approved") {
@@ -73,7 +74,7 @@ export function WalletSelectionModal({ children }: WalletSelectionModalProps) {
       // Fallback to standard wallet adapter connection
       await connect(walletName);
       setOpen(false);
-    } catch (error) {
+    } catch {
       // Silent error - wallet adapter will handle error display
     }
   };
@@ -105,9 +106,11 @@ export function WalletSelectionModal({ children }: WalletSelectionModalProps) {
               >
                 <div className="flex items-center space-x-3">
                   {wallet.icon && (
-                    <img 
+                    <Image 
                       src={wallet.icon} 
                       alt={wallet.name} 
+                      width={24}
+                      height={24}
                       className="w-6 h-6"
                     />
                   )}
