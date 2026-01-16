@@ -13,7 +13,7 @@ interface RideSearchProps {
   isLoading?: boolean;
 }
 
-export function RideSearch({ onSearch, isLoading = false }: RideSearchProps) {
+export function RideSearch({ onSearch, onResults, isLoading = false }: RideSearchProps) {
   const [pickupLocation, setPickupLocation] = useState("");
   const [destinationLocation, setDestinationLocation] = useState("");
   const [pickupSuggestions, setPickupSuggestions] = useState<Location[]>([]);
@@ -48,38 +48,97 @@ export function RideSearch({ onSearch, isLoading = false }: RideSearchProps) {
     setShowPickupSuggestions(false);
   };
 
-  const selectDestinationSuggestion = (location: Location) => {
+  const selectDestinationSuggestion = (Location) => {
     setDestinationLocation(location.name);
     setShowDestinationSuggestions(false);
   };
 
-  const handleSearch = async () => {
+  const handleLineraSearch = async () => {
     // Geocode both locations
     const pickupCoords = await geocodeLocation(pickupLocation);
     const destCoords = await geocodeLocation(destinationLocation);
 
-    if (!pickupCoords) {
-      alert(`Could not find location: "${pickupLocation}". Please select from suggestions or try another location.`);
+    if (!pickupCoords || !destCoords) {
+      alert(`Please select valid pickup and destination locations.`);
       return;
     }
 
-    if (!destCoords) {
-      alert(`Could not find location: "${destinationLocation}". Please select from suggestions or try another location.`);
-      return;
+    if (walletState.isConnected) {
+      setIsLineraSearch(true);
+      
+      try {
+        // Query Linera smart contract for prices
+        const query = `
+          query GetPrices($pickup: Location!, $dropoff: Location!) {
+            getPrices(pickup: $pickup, dropoff: $dropoff, timestamp: ${Date.now()}) {
+              cheapest { provider amount currency etaMinutes vehicleType surgeMultiplier }
+              allOptions { provider amount currency etaMinutes vehicleType surgeMultiplier }
+              timestamp
+              pickup { lat lng address }
+              dropoff { lat lng address }
+            }
+          }
+        `;
+        
+        const variables = {
+          pickup: {
+            lat: pickupCoords.lat,
+            lng: pickupCoords.lng,
+            address: pickupLocation,
+          },
+          dropoff: {
+            lat: destCoords.lat,
+            lng: destCoords.lng,
+            address: destinationLocation,
+          },
+        };
+        
+        const result = await queryContract('app_123', query, variables);
+        
+        if (result?.data?.getPrices && onResults) {
+          onResults(result.data.getPrices);
+        }
+        
+        setIsLineraSearch(false);
+      } catch (error) {
+        console.error('Linera search failed:', error);
+        alert('Failed to query Linera contract. Using fallback search.');
+        setIsLineraSearch(false);
+      }
     }
+  };
 
-    const request: RideEstimateRequest = {
-      pickup: {
-        coordinates: pickupCoords,
-        address: pickupLocation,
-      },
-      destination: {
-        coordinates: destCoords,
-        address: destinationLocation,
-      },
-    };
+  const handleSearch = async () => {
+    if (walletState.isConnected) {
+      await handleLineraSearch();
+    } else {
+      // Fallback to traditional search
+      const pickupCoords = await geocodeLocation(pickupLocation);
+      const destCoords = await geocodeLocation(destinationLocation);
 
-    onSearch(request);
+      if (!pickupCoords) {
+        alert(`Could not find location: "${pickupLocation}". Please select from suggestions or try another location.`);
+        return;
+      }
+
+      if (!destCoords) {
+        alert(`Could not find location: "${destinationLocation}". Please select from suggestions or try another location.`);
+        return;
+      }
+
+      const request: RideEstimateRequest = {
+        pickup: {
+          coordinates: pickupCoords,
+          address: pickupLocation,
+        },
+        destination: {
+          coordinates: destCoords,
+          address: destinationLocation,
+        },
+      };
+
+      onSearch(request);
+    }
   };
 
   const loadRoute = (routeIndex: number) => {
@@ -95,9 +154,11 @@ export function RideSearch({ onSearch, isLoading = false }: RideSearchProps) {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Compare Ride Prices</CardTitle>
+        <CardTitle>Compare Ride Prices on Linera Microchains</CardTitle>
         <CardDescription>
-          Enter your pickup and destination locations to compare prices from Uber, Ola, Rapido, and BlaBlaCar
+          {walletState.isConnected 
+            ? "Query prices from Linera smart contract with native API integration"
+            : "Enter locations to connect Linera wallet for decentralized price comparison"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -198,12 +259,12 @@ export function RideSearch({ onSearch, isLoading = false }: RideSearchProps) {
         {/* Action Buttons */}
         <div className="flex gap-2">
           <Button
-            onClick={handleSearch}
-            disabled={isLoading || !pickupLocation || !destinationLocation}
+            onClick={walletState.isConnected ? handleLineraSearch : handleSearch}
+            disabled={isLoading || isLineraSearch || !pickupLocation || !destinationLocation || !walletState.isConnected}
             className="flex-1"
             size="lg"
           >
-            {isLoading ? "Searching..." : "Compare Prices"}
+            {isLineraSearch ? "Querying Linera..." : isLoading ? "Searching..." : walletState.isConnected ? "Compare Prices (Linera)" : "Compare Prices (Connect Wallet)"}
           </Button>
         </div>
 

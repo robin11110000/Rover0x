@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getAptosWallets } from "@aptos-labs/wallet-standard";
 
 interface WalletSelectionModalProps {
   children: React.ReactNode;
@@ -20,62 +17,25 @@ interface WalletSelectionModalProps {
 
 export function WalletSelectionModal({ children }: WalletSelectionModalProps) {
   const [open, setOpen] = useState(false);
-  const { wallets, connect } = useWallet();
+  const { connect, disconnect, isConnected } = useLineraClient();
 
-  // Filter out unwanted wallets, remove duplicates, and sort with Nightly first
-  const filteredWallets = wallets
-    .filter((wallet) => {
-      const name = wallet.name.toLowerCase();
-      return !name.includes("petra") && 
-             !name.includes("google") && 
-             !name.includes("apple");
-    })
-    .filter((wallet, index, self) => {
-      // Remove duplicates based on wallet name
-      return index === self.findIndex((w) => w.name === wallet.name);
-    })
-    .sort((a, b) => {
-      // Nightly always first
-      if (a.name.toLowerCase().includes("nightly")) return -1;
-      if (b.name.toLowerCase().includes("nightly")) return 1;
-      return 0;
-    });
-
-  const handleWalletSelect = async (walletName: string) => {
+  const handleConnect = async () => {
     try {
-      // Try to connect with Movement network info using wallet-standard features
-      if (typeof window !== "undefined") {
-        const allWallets = getAptosWallets();
-        const selectedWallet = allWallets.aptosWallets.find(w => w.name === walletName);
-        
-        if (selectedWallet?.features?.['aptos:connect']) {
-          // Use wallet-standard aptos:connect feature with network info
-          const networkInfo: any = {
-            chainId: 126, // Movement Mainnet
-            name: "custom",
-            url: "https://full.mainnet.movementinfra.xyz/v1"
-          };
-          
-          try {
-            const result = await (selectedWallet.features['aptos:connect'] as any).connect(false, networkInfo);
-            
-            // If wallet-standard connection succeeded, now connect via wallet adapter
-            if (result.status === "Approved") {
-              await connect(walletName);
-              setOpen(false);
-              return;
-            }
-          } catch (connectError) {
-            // Fallback to standard connection
-          }
-        }
+      const success = await connect();
+      if (success) {
+        setOpen(false);
       }
-      
-      // Fallback to standard wallet adapter connection
-      await connect(walletName);
+    } catch (error) {
+      console.error("Failed to connect Linera wallet:", error);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
       setOpen(false);
-    } catch {
-      // Silent error - wallet adapter will handle error display
+    } catch (error) {
+      console.error("Failed to disconnect wallet:", error);
     }
   };
 
@@ -86,41 +46,69 @@ export function WalletSelectionModal({ children }: WalletSelectionModalProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Connect Wallet</DialogTitle>
+          <DialogTitle>
+            {isConnected ? "Linera Wallet Connected" : "Connect Linera Wallet"}
+          </DialogTitle>
           <DialogDescription>
-            Choose a wallet to connect to Movement Network
+            {isConnected 
+              ? "Your Linera wallet is connected to the Rover dApp"
+              : "Connect your Linera wallet to access decentralized price aggregation"
+            }
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          {filteredWallets.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">
-              No compatible wallets detected. Please install a supported wallet.
-            </p>
-          ) : (
-            filteredWallets.map((wallet) => (
+        <div className="space-y-4">
+          {isConnected ? (
+            <div className="space-y-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 font-medium text-center">
+                  ✓ Wallet Connected Successfully
+                </p>
+                <p className="text-green-700 text-sm text-center mt-2">
+                  You can now use Rover's microchain features
+                </p>
+              </div>
               <Button
-                key={wallet.name}
                 variant="outline"
-                className="w-full justify-start h-12"
-                onClick={() => handleWalletSelect(wallet.name)}
+                className="w-full"
+                onClick={handleDisconnect}
               >
-                <div className="flex items-center space-x-3">
-                  {wallet.icon && (
-                    <Image 
-                      src={wallet.icon} 
-                      alt={wallet.name} 
-                      width={24}
-                      height={24}
-                      className="w-6 h-6"
-                    />
-                  )}
-                  <span>{wallet.name}</span>
-                </div>
+                Disconnect Wallet
               </Button>
-            ))
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800 font-medium text-center">
+                  Linera Web Client
+                </p>
+                <p className="text-blue-700 text-sm text-center mt-2">
+                  Connect using the Linera browser extension or web client
+                </p>
+              </div>
+              <Button
+                className="w-full"
+                onClick={handleConnect}
+              >
+                Connect Linera Wallet
+              </Button>
+              <div className="text-xs text-muted-foreground text-center">
+                <p>Don't have a Linera wallet?</p>
+                <a 
+                  href="https://linera.dev" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Get started with Linera
+                </a>
+              </div>
+            </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+// Import Linera client hook
+import { useLineraClient } from "@/lib/services/linera-client";

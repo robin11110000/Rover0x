@@ -1,0 +1,20 @@
+[package]
+name = "rover-contract"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+linera-sdk = { path = "../../linera-protocol/linera-sdk" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+async-graphql = { version = "7.0" }
+
+[dependencies.linera-sdk]
+features = ["contract"]
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.2", features = ["js"] }

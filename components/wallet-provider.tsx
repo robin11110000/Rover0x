@@ -1,30 +1,28 @@
 "use client";
 
 import { ReactNode } from "react";
-import { AptosWalletAdapterProvider } from "@aptos-labs/wallet-adapter-react";
-import { AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { LineraProvider as BaseLineraProvider } from "@linera/client";
+import { LINERA_NETWORKS, LineraNetworkConfig } from "@/lib/services/linera-client";
 
 interface WalletProviderProps {
   children: ReactNode;
 }
 
 export function WalletProvider({ children }: WalletProviderProps) {
-  // Movement Mainnet configuration
-  // Transactions will use their own config based on the connected network
-  const aptosConfig = new AptosConfig({
-    network: Network.MAINNET,
-    fullnode: "https://testnet.movementnetwork.xyz/v1",
-  });
+  // Linera Testnet Conway configuration based on actual protocol analysis
+  const networkConfig = LINERA_NETWORKS.testnetConway;
   
   return (
-    <AptosWalletAdapterProvider
+    <BaseLineraProvider
+      network={networkConfig.chainId}
+      rpcUrl={networkConfig.rpcUrl}
+      graphqlUrl={networkConfig.graphqlUrl}
       autoConnect={true}
-      dappConfig={aptosConfig}
       onError={(error) => {
-        console.error("Wallet error:", JSON.stringify(error, null, 2));
+        console.error("Linera wallet error:", JSON.stringify(error, null, 2));
       }}
     >
       {children}
-    </AptosWalletAdapterProvider>
+    </BaseLineraProvider>
   );
 }
