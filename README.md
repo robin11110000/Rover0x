@@ -325,30 +325,4 @@ rover/
 ✅ **Multi-chain architecture support** - Scalable per-user microchains  
 ✅ **Cross-chain messaging** - Parallel API queries  
 
-## Judging Criteria Alignment
 
-### Working Demo & Functionality (30%)
-- Docker compose setup for easy testing
-- Live price comparison across multiple providers
-- Real-time API integration
-
-### Integration with Linera Stack (30%)
-- Native service calls from contracts
-- User microchains for scalability
-- Cross-chain messaging for parallel processing
-- GraphQL API integration
-
-### Creativity & UX (20%)
-- Solves real Indian commuter problem
-- Intuitive price comparison interface
-- Sub-second response times
-
-### Scalability & Use Case (10%)
-- Per-user microchains prevent congestion
-- Real-world commute aggregation
-- Transparent, on-chain price data
-
-### Vision & Roadmap (10%)
-- Multi-provider expansion
-- Historical price tracking
-- Enhanced prediction features
