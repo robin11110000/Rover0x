@@ -7,6 +7,12 @@ export interface Coordinates {
   longitude: number;
 }
 
+export interface Location {
+  lat: number;
+  lng: number;
+  address: string;
+}
+
 export interface RideLocation {
   coordinates: Coordinates;
   address?: string;
@@ -105,4 +111,6 @@ export interface PriceComparisonResult {
   cheapest?: RideEstimate;
   fastest?: RideEstimate;
   timestamp: Date;
+  pickup?: Location;
+  dropoff?: Location;
 }

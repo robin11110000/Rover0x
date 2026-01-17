@@ -54,6 +54,24 @@ User Microchain (Rover Contract)
 
 ## Setup Instructions
 
+### Using Docker (Recommended for Buildathon Testing)
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd Rover0x
+```
+
+2. Run with Docker Compose:
+```bash
+docker compose up --force-recreate
+```
+
+3. Access the application:
+- Frontend: http://localhost:5173
+- Faucet: http://localhost:8080
+- Validator Proxy: http://localhost:9001
+
 ### Prerequisites
 ```bash
 # Install Rust
@@ -65,6 +83,25 @@ cargo install linera-sdk
 # Install Node.js dependencies
 npm install -g pnpm
 pnpm install
+```
+
+### Local Development
+```bash
+# Clone repository
+git clone https://github.com/[your-username]/rover
+cd rover
+
+# Start local Linera network
+linera net up
+
+# Build and deploy contract
+cd contract
+cargo build --release --target wasm32-unknown-unknown
+linera project publish-and-create
+
+# Run frontend
+cd ../frontend
+pnpm dev
 ```
 
 ### Local Development
@@ -273,3 +310,45 @@ rover/
 - **Wallet Address**: 0xD16101f623B17284AfCd7F28dE6e3B29D2646be0
 
 **Built for Linera Microchains Buildathon**
+
+---
+
+## Buildathon Submission Requirements Met
+
+✅ **Functional Linera contract** - Smart contract with proper SDK integration  
+✅ **Docker setup with compose.yaml** - Buildathon template configuration  
+✅ **Required ports configured** - 5173 (frontend), 8080 (faucet), 9001 (proxy), 13001 (shard)  
+✅ **Health check configuration** - Docker healthcheck for frontend  
+✅ **Public GitHub repository** - Complete project structure  
+✅ **README with setup instructions** - Comprehensive documentation  
+✅ **Linera SDK Integration** - Uses proper contract and service traits  
+✅ **Multi-chain architecture support** - Scalable per-user microchains  
+✅ **Cross-chain messaging** - Parallel API queries  
+
+## Judging Criteria Alignment
+
+### Working Demo & Functionality (30%)
+- Docker compose setup for easy testing
+- Live price comparison across multiple providers
+- Real-time API integration
+
+### Integration with Linera Stack (30%)
+- Native service calls from contracts
+- User microchains for scalability
+- Cross-chain messaging for parallel processing
+- GraphQL API integration
+
+### Creativity & UX (20%)
+- Solves real Indian commuter problem
+- Intuitive price comparison interface
+- Sub-second response times
+
+### Scalability & Use Case (10%)
+- Per-user microchains prevent congestion
+- Real-world commute aggregation
+- Transparent, on-chain price data
+
+### Vision & Roadmap (10%)
+- Multi-provider expansion
+- Historical price tracking
+- Enhanced prediction features
